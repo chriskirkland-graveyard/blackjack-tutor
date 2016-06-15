@@ -19,11 +19,10 @@ func main() {
 	ui := new(blackjackui.ShellUI)
 
 	gameCount := 0
-	gamesBeforeShuffle := 5
 	var myGame blackjack.Game
 	for {
 		// shuffle up and deal
-		if gameCount%gamesBeforeShuffle == 0 {
+		if myGame.NeedsShuffle() {
 			myGame = blackjack.NewGame()
 		}
 		myGame.NewHand()

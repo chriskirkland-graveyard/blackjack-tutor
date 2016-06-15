@@ -63,9 +63,11 @@ func (p *Player) isBust() bool {
 }
 
 type Game struct {
-	shoe   Shoe
-	player Player
-	dealer Player
+	shoe              Shoe
+	player            Player
+	dealer            Player
+	ruleset           ruleSet
+	handsSinceShuffle int
 }
 
 func (g Game) String() string {
@@ -79,7 +81,9 @@ func (g Game) String() string {
 
 func NewGame() Game {
 	// initialize game
-	return Game{shoe: NewShoe(1)}
+	myRuleset := newRuleSet()
+	myShoe := NewShoe(myRuleset.numDecks)
+	return Game{shoe: myShoe, ruleset: myRuleset}
 }
 
 func (g *Game) NewHand() {
@@ -91,6 +95,10 @@ func (g *Game) NewHand() {
 	g.DealDealer()
 	g.DealPlayer()
 	g.DealDealer()
+}
+
+func (g *Game) NeedsShuffle() bool {
+	return g.handsSinceShuffle >= g.ruleset.handsBeforeShuffle
 }
 
 func (g *Game) PlayerCanHit() bool {
@@ -115,6 +123,8 @@ func (g *Game) GoDealer() {
 }
 
 func (g *Game) GetWinner() int {
+	g.handsSinceShuffle++
+
 	playerCount := g.player.Count()
 	dealerCount := g.dealer.Count()
 	if g.player.hasBlackjack() {

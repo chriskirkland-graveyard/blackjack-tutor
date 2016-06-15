@@ -8,6 +8,12 @@ import (
 	"os/exec"
 )
 
+func clearScreen() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
+
 type ShellUI struct{}
 
 func (b *ShellUI) PromptUser(msg string) string {
@@ -15,12 +21,6 @@ func (b *ShellUI) PromptUser(msg string) string {
 	scan := bufio.NewScanner(os.Stdin)
 	scan.Scan()
 	return scan.Text()
-}
-
-func clearScreen() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
 }
 
 func (b *ShellUI) Redraw(g blackjack.Game) {
