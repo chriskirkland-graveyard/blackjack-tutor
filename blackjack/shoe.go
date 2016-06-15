@@ -6,6 +6,21 @@ import "math/rand"
 // **** CONSTANTS ****
 var ranks = "A23456789TJQK"
 var suits = "HDCS"
+var rankValues = [13]int{
+	11, // A
+	2,  // 2
+	3,  // 3
+	4,  // 4
+	5,  // 5
+	6,  // 6
+	7,  // 7
+	8,  // 8
+	9,  // 9
+	10, // T
+	10, // J
+	10, // Q
+	10, // K
+}
 
 // ***** STRUCTS *****
 type Card struct {
@@ -54,8 +69,8 @@ func (s *Shoe) DealCard() Card {
 	}
 }
 
-func NewShoe(desiredNumDecks int) *Shoe {
+func NewShoe(desiredNumDecks int) Shoe {
 	s := Shoe{numDecks: desiredNumDecks}
 	s.Shuffle()
-	return &s
+	return s
 }
