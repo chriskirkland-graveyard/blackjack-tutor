@@ -3,38 +3,20 @@ package main
 import (
 	"./blackjack"
 	"./blackjackui"
-	"fmt"
 	"math/rand"
-	"os"
-	"os/exec"
 	"time"
 )
 
-func clearScreen() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-}
-
-func winnerScreen() {
-	fmt.Println("\nPlayer Wins!!!\n")
-}
-
-func loserScreen() {
-	fmt.Println("\nDealer Wins.\n")
-}
-
-func pushScreen() {
-	fmt.Println("\nPush.\n")
-}
-
 func randomize() {
-	// seed RNG
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func main() {
+	// seed RNG
 	randomize()
+
+	// setup UI
+	ui := new(blackjackui.ShellUI)
 
 	gameCount := 0
 	gamesBeforeShuffle := 5
@@ -49,9 +31,8 @@ func main() {
 		// player decisions
 		var input string
 		for myGame.PlayerCanHit() && input != "s" {
-			clearScreen()
-			fmt.Println(myGame)
-			input := blackjackui.PromptUser("What do you want to do (h/s)?")
+			ui.Redraw(myGame)
+			input := ui.PromptUser("What do you want to do (h/s)?")
 			if input == "h" {
 				// player gets and card and loop
 				myGame.DealPlayer()
@@ -64,22 +45,20 @@ func main() {
 
 		// dealer does stuff
 		myGame.GoDealer()
-		clearScreen()
-		fmt.Println(myGame)
+		ui.Redraw(myGame)
 
 		// decide winners
 		switch myGame.GetWinner() {
 		case blackjack.StatePlayerWins:
-			winnerScreen()
+			ui.WinnerScreen()
 		case blackjack.StateDealerWins:
-			loserScreen()
+			ui.LoserScreen()
 		case blackjack.StatePush:
-			pushScreen()
+			ui.PushScreen()
 		}
 
-		fmt.Print("Press ENTER to continue...")
-		fmt.Scanln()
-
+		// continue...?
+		ui.QContinue()
 		gameCount++
 	}
 }

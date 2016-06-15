@@ -58,6 +58,10 @@ func (p *Player) hasBlackjack() bool {
 	}
 }
 
+func (p *Player) isBust() bool {
+	return p.Count() > 21
+}
+
 type Game struct {
 	shoe   Shoe
 	player Player
@@ -102,8 +106,10 @@ func (g *Game) DealDealer() {
 }
 
 func (g *Game) GoDealer() {
-	for g.dealer.Count() < 17 {
-		g.DealDealer()
+	if !g.player.hasBlackjack() {
+		for g.dealer.Count() < 17 {
+			g.DealDealer()
+		}
 	}
 	g.dealer.holeCard = false // reveal card
 }
@@ -113,9 +119,9 @@ func (g *Game) GetWinner() int {
 	dealerCount := g.dealer.Count()
 	if g.player.hasBlackjack() {
 		return StatePlayerWins
-	} else if playerCount > 21 {
+	} else if g.player.isBust() {
 		return StateDealerWins
-	} else if dealerCount > 21 {
+	} else if g.dealer.isBust() {
 		return StatePlayerWins
 	} else if playerCount > dealerCount {
 		return StatePlayerWins
