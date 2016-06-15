@@ -9,9 +9,22 @@ const (
 	StatePush
 )
 
+const (
+	HAND_WIN = iota
+	HAND_LOSE
+	HAND_PUSH
+)
+
+type Record struct {
+	handsPlayed int
+	handStats   [3]int // [win, lose, push]
+	chipCount   float32
+}
+
 type Player struct {
 	cards    []Card
 	holeCard bool
+	record   Record
 }
 
 func (p Player) String() string {
@@ -83,12 +96,21 @@ func NewGame() Game {
 	// initialize game
 	myRuleset := newRuleSet()
 	myShoe := NewShoe(myRuleset.numDecks)
-	return Game{shoe: myShoe, ruleset: myRuleset}
+	myPlayer := Player{record: Record{chipCount: 200}}
+	return Game{
+		shoe:    myShoe,
+		ruleset: myRuleset,
+		player:  myPlayer,
+	}
+}
+
+func (g *Game) Shuffle() {
+	g.shoe.Shuffle()
 }
 
 func (g *Game) NewHand() {
-	g.player = Player{holeCard: false}
-	g.dealer = Player{holeCard: true}
+	// hide dealer hole card
+	g.dealer.holeCard = true
 
 	// deal cards
 	g.DealPlayer()
@@ -122,23 +144,43 @@ func (g *Game) GoDealer() {
 	g.dealer.holeCard = false // reveal card
 }
 
+func (g *Game) playerWins() int {
+	if g.player.hasBlackjack() {
+		g.player.record.chipCount += g.ruleset.blackjackPayout
+	} else {
+		g.player.record.chipCount += 1
+	}
+	g.player.record.handStats[HAND_WIN]++
+	return StatePlayerWins
+}
+
+func (g *Game) dealerWins() int {
+	g.player.record.handStats[HAND_LOSE]++
+	g.player.record.chipCount -= 1
+	return StatePlayerWins
+}
+
+func (g *Game) push() int {
+	g.player.record.handStats[HAND_PUSH]++
+	return StatePush
+}
+
 func (g *Game) GetWinner() int {
 	g.handsSinceShuffle++
+	g.player.record.handsPlayed++
 
 	playerCount := g.player.Count()
 	dealerCount := g.dealer.Count()
-	if g.player.hasBlackjack() {
-		return StatePlayerWins
-	} else if g.player.isBust() {
-		return StateDealerWins
+	if g.player.isBust() {
+		return g.dealerWins()
 	} else if g.dealer.isBust() {
-		return StatePlayerWins
+		return g.playerWins()
 	} else if playerCount > dealerCount {
-		return StatePlayerWins
+		return g.playerWins()
 	} else if playerCount < dealerCount {
-		return StateDealerWins
+		return g.dealerWins()
 	} else if playerCount == dealerCount {
-		return StatePush
+		return g.push()
 	} else {
 		panic(fmt.Sprintf(
 			"Invalid game state! (pc=%d,dc=%d)",
