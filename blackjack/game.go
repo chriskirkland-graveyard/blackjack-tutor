@@ -157,7 +157,7 @@ func (g *Game) playerWins() int {
 func (g *Game) dealerWins() int {
 	g.player.record.handStats[HAND_LOSE]++
 	g.player.record.chipCount -= 1
-	return StatePlayerWins
+	return StateDealerWins
 }
 
 func (g *Game) push() int {
