@@ -43,7 +43,9 @@ func main() {
 		}
 
 		// dealer does stuff
-		myGame.GoDealer()
+		if !myGame.QPlayerBust() {
+			myGame.GoDealer()
+		}
 		ui.Redraw(myGame)
 
 		// decide winners

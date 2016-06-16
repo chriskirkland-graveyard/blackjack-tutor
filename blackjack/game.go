@@ -2,6 +2,7 @@ package blackjack
 
 import "bytes"
 import "fmt"
+import "math"
 
 const (
 	StatePlayerWins = iota
@@ -19,6 +20,20 @@ type Record struct {
 	handsPlayed int
 	handStats   [3]int // [win, lose, push]
 	chipCount   float32
+}
+
+func (r Record) String() string {
+	safeHandsPlayed := math.Max(1, float64(r.handsPlayed))
+	return fmt.Sprintf(
+		"Hands: %-5d Win: %d (%1.2f%%)   Loss: %d (%1.2f%%)   Push: %-3d\nChip Count: %1.2f\n",
+		r.handsPlayed,
+		r.handStats[HAND_WIN],
+		float64(r.handStats[HAND_WIN]-r.handStats[HAND_PUSH])/safeHandsPlayed*100,
+		r.handStats[HAND_LOSE],
+		float64(r.handStats[HAND_LOSE]-r.handStats[HAND_PUSH])/safeHandsPlayed*100,
+		r.handStats[HAND_PUSH],
+		r.chipCount,
+	)
 }
 
 type Player struct {
@@ -85,8 +100,10 @@ type Game struct {
 
 func (g Game) String() string {
 	return fmt.Sprintf(
-		"Shoe: \n%v\nDealer: %v\nPlayer: %v\n",
-		g.shoe,
+		// "Shoe: \n%v\nDealer: %v\nPlayer: %v\n",
+		// g.shoe,
+		"STATS:\n%v\n\nCURRENT HAND:\nDealer: %v\nPlayer: %v\n",
+		g.player.record,
 		g.dealer,
 		g.player,
 	)
@@ -112,6 +129,10 @@ func (g *Game) NewHand() {
 	// hide dealer hole card
 	g.dealer.holeCard = true
 
+	// reset cards
+	g.player.cards = []Card{}
+	g.dealer.cards = []Card{}
+
 	// deal cards
 	g.DealPlayer()
 	g.DealDealer()
@@ -125,6 +146,10 @@ func (g *Game) NeedsShuffle() bool {
 
 func (g *Game) PlayerCanHit() bool {
 	return g.player.Count() < 21
+}
+
+func (g *Game) QPlayerBust() bool {
+	return g.player.Count() > 21
 }
 
 func (g *Game) DealPlayer() {
