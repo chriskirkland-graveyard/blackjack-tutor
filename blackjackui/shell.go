@@ -40,6 +40,10 @@ func (b *ShellUI) PushScreen() {
 	fmt.Println("\nPush.\n")
 }
 
+func (b *ShellUI) InsuranceWin() {
+	fmt.Println("\nDealer has Blackjack. Insurance Pays!\n")
+}
+
 func (b *ShellUI) QContinue() {
 	fmt.Print("Press ENTER to continue...")
 	fmt.Scanln()

@@ -90,6 +90,15 @@ func (p *Player) isBust() bool {
 	return p.Count() > 21
 }
 
+func (p *Player) hasAce() bool {
+	for _, card := range p.cards {
+		if card.rank == 0 { // Ace
+			return true
+		}
+	}
+	return false
+}
+
 type Game struct {
 	shoe              Shoe
 	player            Player
@@ -152,6 +161,22 @@ func (g *Game) QPlayerBust() bool {
 	return g.player.Count() > 21
 }
 
+func (g *Game) QInsuranceAvailable() bool {
+	return g.ruleset.insurance &&
+		len(g.dealer.cards) == 2 &&
+		g.dealer.cards[1].rank == 0 // Dealer showing Ace
+}
+
+func (g *Game) InsurancePays() bool {
+	if g.dealer.hasBlackjack() {
+		g.player.record.chipCount += 2
+		return true
+	} else {
+		g.player.record.chipCount -= 1
+		return false
+	}
+}
+
 func (g *Game) DealPlayer() {
 	g.player.addCard(g.shoe.DealCard())
 }
@@ -162,7 +187,8 @@ func (g *Game) DealDealer() {
 
 func (g *Game) GoDealer() {
 	if !g.player.hasBlackjack() {
-		for g.dealer.Count() < 17 {
+		for g.dealer.Count() < 17 ||
+			(g.ruleset.hitSoft17 && g.dealer.Count() == 17 && g.dealer.hasAce()) {
 			g.DealDealer()
 		}
 	}

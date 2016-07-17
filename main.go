@@ -1,10 +1,12 @@
 package main
 
 import (
-	"./blackjack"
-	"./blackjackui"
+	"fmt"
 	"math/rand"
 	"time"
+
+	"./blackjack"
+	"./blackjackui"
 )
 
 func randomize() {
@@ -31,6 +33,20 @@ func main() {
 		var input string
 		for myGame.PlayerCanHit() && input != "s" {
 			ui.Redraw(myGame)
+
+			// insurance check
+			if myGame.QInsuranceAvailable() {
+				input := ui.PromptUser("Would you like insurances (y/n)?")
+				switch input {
+				case "y":
+					if myGame.InsurancePays() {
+						ui.InsuranceWin()
+					}
+				case "n":
+				default:
+					panic(fmt.Sprintf("Invalid input: expected (y/n) but found \"%s\""))
+				}
+			}
 			input := ui.PromptUser("What do you want to do (h/s)?")
 			if input == "h" {
 				// player gets and card and loop
